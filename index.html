@@ -59,12 +59,63 @@
     padding:0 8px;
     color:var(--accent-strong);
   }
-  .sidebar-trips{
+  .sidebar-scroll{
     flex:1;
     display:flex;
     flex-direction:column;
     gap:2px;
     overflow-y:auto;
+    min-height:0;
+  }
+  .sidebar-nav{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    padding-bottom:10px;
+    margin-bottom:8px;
+    border-bottom:1px solid var(--border);
+  }
+  .sidebar-navitem{
+    padding:9px 10px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--text-soft);
+  }
+  .sidebar-navitem:hover{background:var(--surface-alt);}
+  .sidebar-navitem.active{background:var(--accent-soft);color:var(--accent-strong);}
+  .sidebar-section-label{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    color:var(--text-faint);
+    padding:10px 10px 4px;
+  }
+  .sidebar-friend{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 10px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--text-soft);
+  }
+  .sidebar-friend:hover{background:var(--surface-alt);}
+  .sidebar-friend.active{background:var(--accent-soft);color:var(--accent-strong);}
+  .sidebar-friend-name{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .sidebar-trips{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
   }
   .sidebar-trip{
     display:flex;
@@ -150,7 +201,7 @@
       gap:10px;
     }
     .sidebar-brand{display:none;}
-    .sidebar-trips{
+    .sidebar-scroll{
       flex-direction:row;
       overflow-x:auto;
       overflow-y:visible;
@@ -159,11 +210,33 @@
       gap:6px;
       align-items:center;
     }
+    .sidebar-nav{
+      flex-direction:row;
+      border-bottom:none;
+      margin-bottom:0;
+      padding-bottom:0;
+      gap:6px;
+      flex-shrink:0;
+    }
+    .sidebar-navitem{white-space:nowrap;flex-shrink:0;padding:10px 12px;}
+    .sidebar-section-label{display:none;}
+    .sidebar-trips{
+      flex-direction:row;
+      gap:6px;
+      flex-shrink:0;
+    }
     .sidebar-trip{
       white-space:nowrap;
       flex-shrink:0;
       padding:10px 12px;
     }
+    .sidebar-friends{
+      display:flex;
+      flex-direction:row;
+      gap:6px;
+      flex-shrink:0;
+    }
+    .sidebar-friend{white-space:nowrap;flex-shrink:0;padding:10px 12px;}
     .sidebar-newtrip{
       border-top:none;
       padding-top:0;
@@ -196,6 +269,52 @@
     .app{min-height:calc(100vh - 64px);}
   }
 
+  /* --- Right panel (group members) --- */
+  .right-panel{
+    width:220px;
+    flex-shrink:0;
+    border-left:1px solid var(--border);
+    padding:22px 18px;
+  }
+  .right-panel-title{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-weight:700;
+    font-size:13px;
+    color:var(--text-soft);
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    margin-bottom:12px;
+  }
+  .member-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 4px;
+  }
+  .member-row-info{
+    flex:1;
+    min-width:0;
+  }
+  .member-row-name{
+    font-size:13.5px;
+    font-weight:600;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .member-row-bal{
+    font-size:11px;
+    font-weight:700;
+    margin-top:1px;
+    font-variant-numeric:tabular-nums;
+  }
+  .member-row-bal.positive{color:var(--accent-strong);}
+  .member-row-bal.negative{color:var(--negative);}
+  .member-row-bal.faint{color:var(--text-faint);font-weight:500;}
+  @media (max-width:1000px){
+    .right-panel{display:none;}
+  }
+
   .app{padding-top:22px;}
   .icon-round{
     width:36px;
@@ -222,17 +341,6 @@
     line-height:1;
   }
   .avatar-square{border-radius:11px;}
-  .avatar-stack{display:flex;align-items:center;position:relative;}
-  .avatar-stack .avatar{border:2.5px solid var(--surface);margin-left:-11px;}
-  .avatar-stack .avatar:first-child{margin-left:0;}
-  .avatar-more{
-    width:34px;height:34px;border-radius:50%;
-    background:var(--surface-alt);color:var(--text-soft);
-    display:flex;align-items:center;justify-content:center;
-    font-size:11.5px;font-weight:700;
-    border:2.5px solid var(--surface);margin-left:-11px;
-    flex-shrink:0;
-  }
 
   /* --- Group header (signature element) --- */
   .group-header{
@@ -269,7 +377,6 @@
     color:var(--text-soft);
     margin-top:2px;
   }
-  .group-header .avatar-stack{margin-top:14px;}
   .balance-line{
     font-family:'Plus Jakarta Sans',sans-serif;
     font-weight:700;
@@ -648,6 +755,7 @@
       <div class="loading-screen">loading trip…</div>
     </div>
   </div>
+  <div class="right-panel" id="rightPanel"></div>
 </div>
 
 <script>
@@ -688,6 +796,8 @@ let data = { name: '', friends: [], expenses: [], settings: { defaultCurrency: '
 let identity = null;      // {name} — global per device; id is resolved per trip
 let activeTab = 'expenses';
 let loaded = false;
+let viewMode = 'group';   // 'group' | 'dashboard' | 'activity' | 'allexpenses' | 'friend'
+let activeFriendName = null;
 
 function setupNeeded(){
   return firebaseConfig.apiKey === 'YOUR_API_KEY';
@@ -708,13 +818,6 @@ function initials(name){
 function avatarHtml(name, size, square){
   size = size || 32;
   return `<div class="avatar${square?' avatar-square':''}" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.38)}px;background:${avatarColor(name)}">${escapeHtml(initials(name))}</div>`;
-}
-function avatarStackHtml(friends, max){
-  max = max || 6;
-  const shown = friends.slice(0, max);
-  let html = '<div class="avatar-stack">' + shown.map(f => avatarHtml(f.name, 34)).join('');
-  if(friends.length > max) html += `<div class="avatar-more">+${friends.length - max}</div>`;
-  return html + '</div>';
 }
 
 function loadIdentityLocal(){
@@ -766,15 +869,31 @@ async function loadData(){
 
 async function refreshTripsList(){
   const snap = await db.collection(TRIPS_COLLECTION).get();
-  trips = snap.docs.map(d => ({id: d.id, name: (d.data().name) || 'Untitled trip'}));
+  trips = snap.docs.map(d => {
+    const t = d.data() || {};
+    return {
+      id: d.id,
+      name: t.name || 'Untitled trip',
+      friends: t.friends || [],
+      expenses: t.expenses || [],
+      settings: t.settings || { defaultCurrency: 'CAD' }
+    };
+  });
   renderSidebar();
+}
+
+function syncTripCache(id, tripData){
+  const idx = trips.findIndex(t => t.id === id);
+  const cached = { id, name: tripData.name, friends: tripData.friends, expenses: tripData.expenses, settings: tripData.settings };
+  if(idx >= 0) trips[idx] = cached;
+  else trips.push(cached);
 }
 
 async function createTrip(name, idOverride){
   const id = idOverride || ('t' + Date.now());
   const trip = { name, friends: [], expenses: [], settings: { defaultCurrency: 'CAD' } };
   await db.collection(TRIPS_COLLECTION).doc(id).set(trip);
-  trips.push({id, name});
+  trips.push({id, ...trip});
   renderSidebar();
   return id;
 }
@@ -792,21 +911,44 @@ async function deleteTrip(id){
   }
 }
 
-/* ---------- Sidebar (trip list) ---------- */
+/* ---------- Sidebar (nav + groups + friends) ---------- */
+function allFriendsAcrossTrips(){
+  const map = new Map();
+  trips.forEach(t => (t.friends || []).forEach(f => {
+    const key = f.name.toLowerCase();
+    if(!map.has(key)) map.set(key, {name: f.name});
+  }));
+  return Array.from(map.values()).sort((a,b) => a.name.localeCompare(b.name));
+}
+
 function renderSidebar(){
   const sidebar = document.getElementById('sidebar');
   if(!sidebar) return;
   const tripRows = trips.map(t => `
-    <div class="sidebar-trip ${t.id===activeTripId ? 'active' : ''}" data-open="${t.id}">
+    <div class="sidebar-trip ${viewMode==='group' && t.id===activeTripId ? 'active' : ''}" data-open="${t.id}">
       <span class="sidebar-trip-inner">${avatarHtml(t.name, 24, true)}<span class="sidebar-trip-name">${escapeHtml(t.name)}</span></span>
       <button class="icon-btn" data-delete="${t.id}" title="Delete trip">✕</button>
     </div>`).join('');
+  const friendRows = allFriendsAcrossTrips().map(f => `
+    <div class="sidebar-friend ${viewMode==='friend' && activeFriendName===f.name ? 'active' : ''}" data-friend="${escapeHtml(f.name)}">
+      ${avatarHtml(f.name, 24)}<span class="sidebar-friend-name">${escapeHtml(f.name)}</span>
+    </div>`).join('');
   sidebar.innerHTML = `
     <div class="sidebar-brand">Splitwise</div>
-    <div class="sidebar-trips">${tripRows}</div>
-    <div class="sidebar-newtrip">
-      <input type="text" id="newTripInput" placeholder="New trip name">
-      <button class="icon-round" id="addTripBtn" title="Create trip">+</button>
+    <div class="sidebar-scroll">
+      <div class="sidebar-nav">
+        <div class="sidebar-navitem ${viewMode==='dashboard'?'active':''}" data-view="dashboard">Dashboard</div>
+        <div class="sidebar-navitem ${viewMode==='activity'?'active':''}" data-view="activity">Recent activity</div>
+        <div class="sidebar-navitem ${viewMode==='allexpenses'?'active':''}" data-view="allexpenses">All expenses</div>
+      </div>
+      <div class="sidebar-section-label">Groups</div>
+      <div class="sidebar-trips">${tripRows}</div>
+      <div class="sidebar-newtrip">
+        <input type="text" id="newTripInput" placeholder="New trip name">
+        <button class="icon-round" id="addTripBtn" title="Create trip">+</button>
+      </div>
+      <div class="sidebar-section-label">Friends</div>
+      <div class="sidebar-friends">${friendRows || `<div class="sidebar-friend" style="cursor:default;color:var(--text-faint);">No one yet</div>`}</div>
     </div>
     <div class="sidebar-identity" id="sidebarIdentity" title="Switch who you are">
       ${identity ? avatarHtml(identity.name, 30) : `<div class="avatar" style="width:30px;height:30px;background:var(--text-faint)">?</div>`}
@@ -816,6 +958,9 @@ function renderSidebar(){
       </div>
     </div>
   `;
+  sidebar.querySelectorAll('[data-view]').forEach(el => {
+    el.onclick = () => switchView(el.dataset.view);
+  });
   sidebar.querySelectorAll('[data-open]').forEach(el => {
     el.onclick = async () => { await openTrip(el.dataset.open); };
   });
@@ -828,6 +973,9 @@ function renderSidebar(){
       if(!confirm(msg)) return;
       await deleteTrip(el.dataset.delete);
     };
+  });
+  sidebar.querySelectorAll('[data-friend]').forEach(el => {
+    el.onclick = () => openFriend(el.dataset.friend);
   });
   sidebar.querySelector('#sidebarIdentity').onclick = () => openLogin(false);
   const input = sidebar.querySelector('#newTripInput');
@@ -865,7 +1013,9 @@ async function openTrip(id){
   if(!data.expenses) data.expenses = [];
 
   resolveIdentityForTrip();
+  syncTripCache(id, data);
   loaded = true;
+  viewMode = 'group';
   renderSidebar();
   render();
   if(!identity || !identity.name) openLogin(true);
@@ -878,14 +1028,17 @@ async function openTrip(id){
       if(!data.friends) data.friends = [];
       if(!data.expenses) data.expenses = [];
       resolveIdentityForTrip();
+      syncTripCache(id, data);
       render();
     }
   });
 }
 
 async function saveData(){
-  try{ await db.collection(TRIPS_COLLECTION).doc(activeTripId).set(data); }
-  catch(e){
+  try{
+    await db.collection(TRIPS_COLLECTION).doc(activeTripId).set(data);
+    syncTripCache(activeTripId, data);
+  }catch(e){
     console.error('Save failed', e);
     alert("Couldn't save — check your connection and try again.");
   }
@@ -915,14 +1068,33 @@ function currenciesUsed(){
   data.expenses.forEach(e => set.add(e.currency));
   return Array.from(set);
 }
-function computeBalances(currency){
+function computeBalancesFor(trip, currency){
   const net = {};
-  data.friends.forEach(f => net[f.id] = 0);
-  data.expenses.filter(e => e.currency === currency).forEach(exp => {
+  (trip.friends || []).forEach(f => net[f.id] = 0);
+  (trip.expenses || []).filter(e => e.currency === currency).forEach(exp => {
     net[exp.paidBy] = (net[exp.paidBy] || 0) + exp.amount;
     exp.shares.forEach(s => { net[s.id] = (net[s.id] || 0) - s.amount; });
   });
   return net;
+}
+function computeBalances(currency){
+  return computeBalancesFor(data, currency);
+}
+function tripCurrenciesUsed(trip){
+  const set = new Set([(trip.settings && trip.settings.defaultCurrency) || 'CAD']);
+  (trip.expenses || []).forEach(e => set.add(e.currency));
+  return Array.from(set);
+}
+function tripPrimaryBalance(trip, personName){
+  if(!personName) return null;
+  const f = (trip.friends || []).find(fr => fr.name.toLowerCase() === personName.toLowerCase());
+  if(!f) return null;
+  const defaultCurrency = (trip.settings && trip.settings.defaultCurrency) || 'CAD';
+  const currencies = tripCurrenciesUsed(trip);
+  const balances = currencies.map(c => ({code: c, net: computeBalancesFor(trip, c)[f.id] || 0}));
+  const primary = balances.find(b => b.code === defaultCurrency) || balances[0] || {code: defaultCurrency, net: 0};
+  const others = balances.filter(b => b.code !== primary.code && Math.abs(b.net) > 0.005);
+  return {primary, others, friendId: f.id};
 }
 function simplifyDebts(net){
   const debtors = [], creditors = [];
@@ -968,6 +1140,21 @@ function computeShares(type, total, participantIds, valuesMap){
 }
 
 function switchTab(tab){ activeTab = tab; render(); }
+async function switchView(view){
+  viewMode = view;
+  if(view !== 'group'){
+    try{ await refreshTripsList(); }catch(e){ renderSidebar(); }
+  } else {
+    renderSidebar();
+  }
+  render();
+}
+async function openFriend(name){
+  viewMode = 'friend';
+  activeFriendName = name;
+  try{ await refreshTripsList(); }catch(e){ renderSidebar(); }
+  render();
+}
 
 /* ---------- Login ---------- */
 function openLogin(forced){
@@ -1272,11 +1459,248 @@ function viewerStake(e){
   return paidAmt - shareAmt;
 }
 
-/* ---------- Render ---------- */
+/* ---------- Render dispatch ---------- */
 function render(){
   const app = document.getElementById('app');
   if(!loaded){ app.innerHTML = `<div class="loading-screen">loading trip…</div>`; return; }
+  renderRightPanel();
+  if(viewMode === 'dashboard') return renderDashboard(app);
+  if(viewMode === 'activity') return renderActivity(app);
+  if(viewMode === 'allexpenses') return renderAllExpenses(app);
+  if(viewMode === 'friend') return renderFriendView(app);
+  renderGroupView(app);
+}
 
+function renderRightPanel(){
+  const panel = document.getElementById('rightPanel');
+  if(!panel) return;
+  if(viewMode !== 'group' || !data){ panel.innerHTML = ''; return; }
+  const defaultCurrency = data.settings.defaultCurrency;
+  const net = computeBalances(defaultCurrency);
+  const rows = data.friends.map(f => {
+    const n = net[f.id] || 0;
+    const isYou = identity && f.id === identity.id;
+    const cls = Math.abs(n) < 0.005 ? 'faint' : (n > 0 ? 'positive' : 'negative');
+    const label = Math.abs(n) < 0.005 ? 'settled up' : `${n>0?'+':'-'}${fmt(n, defaultCurrency)}`;
+    return `<div class="member-row">
+      ${avatarHtml(f.name, 32)}
+      <div class="member-row-info">
+        <div class="member-row-name">${escapeHtml(f.name)}${isYou?' <span class="you-tag">(you)</span>':''}</div>
+        <div class="member-row-bal ${cls}">${label}</div>
+      </div>
+    </div>`;
+  }).join('');
+  panel.innerHTML = `<div class="right-panel-title">${escapeHtml(data.name)} · ${data.friends.length} ${data.friends.length===1?'person':'people'}</div>${rows}`;
+}
+
+function bindDashboardLikeOpens(container){
+  container.querySelectorAll('[data-open-group]').forEach(el => {
+    el.onclick = async () => { await openTrip(el.dataset.openGroup); };
+  });
+  container.querySelectorAll('[data-open-friend]').forEach(el => {
+    el.onclick = () => { openFriend(el.dataset.openFriend); };
+  });
+}
+
+function friendNameIn(friendsArr, id){
+  const f = friendsArr.find(fr => fr.id === id);
+  return f ? f.name : 'Unknown';
+}
+function viewerStakeIn(e, tripFriends){
+  if(!identity) return null;
+  const me = tripFriends.find(f => f.name.toLowerCase() === identity.name.toLowerCase());
+  if(!me) return null;
+  const share = e.shares.find(s => s.id === me.id);
+  const shareAmt = share ? share.amount : 0;
+  const paidAmt = e.paidBy === me.id ? e.amount : 0;
+  return paidAmt - shareAmt;
+}
+function activityRowHtml(e){
+  const isPayment = e.splitType === 'payment';
+  const payerName = friendNameIn(e.tripFriends, e.paidBy);
+  const subLabel = isPayment ? `Payment · ${escapeHtml(e.tripName)}` : `${escapeHtml(payerName)} paid · ${escapeHtml(e.tripName)}`;
+  const stake = viewerStakeIn(e, e.tripFriends);
+  let stakeHtml = '';
+  if(stake !== null){
+    stakeHtml = Math.abs(stake) < 0.005
+      ? `<div class="row-stake faint">not involved</div>`
+      : `<div class="row-stake ${stake>0?'positive':'negative'}">${stake>0?'you lent':'you owe'} ${fmt(Math.abs(stake), e.currency)}</div>`;
+  }
+  return `<div class="row" data-open-group="${e.tripId}" style="cursor:pointer;">
+    <div class="row-date">${dateBadgeHtml(e.date)}</div>
+    <div class="row-avatar">${avatarHtml(payerName, 34)}</div>
+    <div class="row-main">
+      <div class="row-title">${escapeHtml(isPayment ? payerName + ' → ' + friendNameIn(e.tripFriends, e.shares[0].id) : e.description)}</div>
+      <div class="row-sub">${subLabel}</div>
+    </div>
+    <div class="row-amount-block">
+      <div class="row-amount-total">${fmt(e.amount, e.currency)}</div>
+      ${stakeHtml}
+    </div>
+  </div>`;
+}
+
+function personBalances(personName){
+  const sums = {};
+  trips.forEach(trip => {
+    const f = (trip.friends || []).find(fr => fr.name.toLowerCase() === personName.toLowerCase());
+    if(!f) return;
+    tripCurrenciesUsed(trip).forEach(c => {
+      const net = computeBalancesFor(trip, c)[f.id] || 0;
+      sums[c] = (sums[c] || 0) + net;
+    });
+  });
+  return Object.entries(sums).map(([code,net]) => ({code, net})).filter(b => Math.abs(b.net) > 0.005);
+}
+function pickPrimary(balances){
+  if(balances.length === 0) return {primary: null, others: []};
+  const sorted = [...balances].sort((a,b) => Math.abs(b.net) - Math.abs(a.net));
+  return {primary: sorted[0], others: sorted.slice(1)};
+}
+
+/* ---------- Dashboard ---------- */
+function renderDashboard(app){
+  document.title = 'Splitwise · Dashboard';
+  const you = identity ? personBalances(identity.name) : [];
+  const {primary, others} = pickPrimary(you);
+  const balClass = !primary ? 'zero' : (primary.net > 0.005 ? 'positive' : (primary.net < -0.005 ? 'negative' : 'zero'));
+  const balSentence = !identity ? 'Sign in to see your balance'
+    : !primary ? "You're all settled up"
+    : primary.net > 0.005 ? `You are owed ${fmt(primary.net, primary.code)} overall`
+    : `You owe ${fmt(Math.abs(primary.net), primary.code)} overall`;
+
+  const groupRows = trips.map(trip => {
+    const bal = identity ? tripPrimaryBalance(trip, identity.name) : null;
+    const cls = !bal || Math.abs(bal.primary.net) < 0.005 ? 'faint' : (bal.primary.net > 0 ? 'positive' : 'negative');
+    const label = !identity ? '' : !bal ? 'not in this group' : Math.abs(bal.primary.net) < 0.005 ? 'settled up'
+      : (bal.primary.net > 0 ? `gets back ${fmt(bal.primary.net, bal.primary.code)}` : `owes ${fmt(Math.abs(bal.primary.net), bal.primary.code)}`);
+    return `<div class="row" data-open-group="${trip.id}" style="cursor:pointer;">
+      <div class="row-avatar">${avatarHtml(trip.name, 34, true)}</div>
+      <div class="row-main"><div class="row-title">${escapeHtml(trip.name)}</div><div class="row-sub">${trip.friends.length} ${trip.friends.length===1?'person':'people'}</div></div>
+      <div class="row-amount-block"><div class="row-stake-lg ${cls}">${label}</div></div>
+    </div>`;
+  }).join('');
+
+  const friendsList = allFriendsAcrossTrips().filter(f => !identity || f.name.toLowerCase() !== identity.name.toLowerCase());
+  const friendRows = friendsList.map(f => {
+    const {primary: fp} = pickPrimary(personBalances(f.name));
+    const cls = !fp ? 'faint' : (fp.net > 0 ? 'positive' : 'negative');
+    const label = !fp ? 'settled up' : (fp.net > 0 ? `gets back ${fmt(fp.net, fp.code)}` : `owes ${fmt(Math.abs(fp.net), fp.code)}`);
+    return `<div class="row" data-open-friend="${escapeHtml(f.name)}" style="cursor:pointer;">
+      <div class="row-avatar">${avatarHtml(f.name, 34)}</div>
+      <div class="row-main row-title">${escapeHtml(f.name)}</div>
+      <div class="row-amount-block"><div class="row-stake-lg ${cls}">${label}</div></div>
+    </div>`;
+  }).join('');
+
+  app.innerHTML = `
+    <div class="group-header">
+      <div class="group-title-block">
+        <div>
+          <div class="group-name">Dashboard</div>
+          <div class="group-meta">${trips.length} group${trips.length===1?'':'s'}${identity ? ' · ' + escapeHtml(identity.name) : ''}</div>
+        </div>
+      </div>
+      <div class="balance-line ${balClass}">${balSentence}</div>
+      ${others.length ? `<div class="summary-extra">${others.map(o => `<span class="mini-pill ${o.net>0?'positive':'negative'}">${o.net<0?'-':'+'}${fmt(o.net, o.code)} ${o.code}</span>`).join('')}</div>` : ''}
+    </div>
+    <div class="content">
+      <div class="section-title">Groups</div>
+      <div class="card">${groupRows || `<div class="empty">No groups yet.</div>`}</div>
+      <div class="section-title">Friends</div>
+      <div class="card">${friendRows || `<div class="empty">No friends yet.</div>`}</div>
+    </div>
+  `;
+  bindDashboardLikeOpens(app);
+}
+
+/* ---------- Recent activity ---------- */
+function allActivityItems(){
+  const items = [];
+  trips.forEach(trip => {
+    (trip.expenses || []).forEach(e => items.push({...e, tripId: trip.id, tripName: trip.name, tripFriends: trip.friends}));
+  });
+  items.sort((a,b) => new Date(b.date) - new Date(a.date));
+  return items;
+}
+function renderActivity(app){
+  document.title = 'Splitwise · Recent activity';
+  const items = allActivityItems().slice(0, 30);
+  const rows = items.map(activityRowHtml).join('');
+  app.innerHTML = `
+    <div class="group-header">
+      <div class="group-title-block"><div><div class="group-name">Recent activity</div><div class="group-meta">Latest updates across all your groups</div></div></div>
+    </div>
+    <div class="content">
+      <div class="card">${rows || `<div class="empty">No activity yet.</div>`}</div>
+    </div>
+  `;
+  bindDashboardLikeOpens(app);
+}
+
+/* ---------- All expenses ---------- */
+function renderAllExpenses(app){
+  document.title = 'Splitwise · All expenses';
+  const sections = trips.map(trip => {
+    const items = [...(trip.expenses || [])].sort((a,b) => new Date(b.date) - new Date(a.date));
+    if(items.length === 0) return '';
+    const rows = items.map(e => activityRowHtml({...e, tripId: trip.id, tripName: trip.name, tripFriends: trip.friends})).join('');
+    return `<div class="section-title">${escapeHtml(trip.name)}</div><div class="card">${rows}</div>`;
+  }).join('');
+  app.innerHTML = `
+    <div class="group-header">
+      <div class="group-title-block"><div><div class="group-name">All expenses</div><div class="group-meta">Every expense across every group</div></div></div>
+    </div>
+    <div class="content">${sections || `<div class="card"><div class="empty">No expenses yet.</div></div>`}</div>
+  `;
+  bindDashboardLikeOpens(app);
+}
+
+/* ---------- Friend page ---------- */
+function renderFriendView(app){
+  const name = activeFriendName;
+  document.title = 'Splitwise · ' + name;
+  const sharedTrips = trips.filter(t => (t.friends || []).some(f => f.name.toLowerCase() === name.toLowerCase()));
+  const {primary, others} = pickPrimary(personBalances(name));
+  const balClass = !primary ? 'zero' : (primary.net > 0.005 ? 'positive' : (primary.net < -0.005 ? 'negative' : 'zero'));
+  const balSentence = !primary ? `${name} is settled up across your shared groups`
+    : primary.net > 0.005 ? `${name} gets back ${fmt(primary.net, primary.code)} overall`
+    : `${name} owes ${fmt(Math.abs(primary.net), primary.code)} overall`;
+
+  const rows = sharedTrips.map(trip => {
+    const bal = tripPrimaryBalance(trip, name);
+    const cls = !bal || Math.abs(bal.primary.net) < 0.005 ? 'faint' : (bal.primary.net > 0 ? 'positive' : 'negative');
+    const label = !bal || Math.abs(bal.primary.net) < 0.005 ? 'settled up'
+      : (bal.primary.net > 0 ? `gets back ${fmt(bal.primary.net, bal.primary.code)}` : `owes ${fmt(Math.abs(bal.primary.net), bal.primary.code)}`);
+    return `<div class="row" data-open-group="${trip.id}" style="cursor:pointer;">
+      <div class="row-avatar">${avatarHtml(trip.name, 34, true)}</div>
+      <div class="row-main row-title">${escapeHtml(trip.name)}</div>
+      <div class="row-amount-block"><div class="row-stake-lg ${cls}">${label}</div></div>
+    </div>`;
+  }).join('');
+
+  app.innerHTML = `
+    <div class="group-header">
+      <div class="group-title-block">
+        ${avatarHtml(name, 44)}
+        <div>
+          <div class="group-name">${escapeHtml(name)}</div>
+          <div class="group-meta">${sharedTrips.length} shared group${sharedTrips.length===1?'':'s'}</div>
+        </div>
+      </div>
+      <div class="balance-line ${balClass}">${escapeHtml(balSentence)}</div>
+      ${others.length ? `<div class="summary-extra">${others.map(o => `<span class="mini-pill ${o.net>0?'positive':'negative'}">${o.net<0?'-':'+'}${fmt(o.net, o.code)} ${o.code}</span>`).join('')}</div>` : ''}
+    </div>
+    <div class="content">
+      <div class="section-title">Shared groups</div>
+      <div class="card">${rows || `<div class="empty">No shared groups.</div>`}</div>
+    </div>
+  `;
+  bindDashboardLikeOpens(app);
+}
+
+/* ---------- Group view ---------- */
+function renderGroupView(app){
   const defaultCurrency = data.settings.defaultCurrency;
   const usedCurrencies = currenciesUsed();
   const yourBalances = usedCurrencies.map(c => ({code: c, net: identity ? (computeBalances(c)[identity.id] || 0) : 0}));
@@ -1387,7 +1811,6 @@ function render(){
         </div>
         <div class="icon-round" onclick="openSettings()" title="Trip settings">⚙</div>
       </div>
-      ${avatarStackHtml(data.friends)}
       <div class="balance-line ${balClass}">${balSentence}</div>
       ${others.length ? `<div class="summary-extra">${others.map(o => `<span class="mini-pill ${o.net>0?'positive':'negative'}">${o.net<0?'-':'+'}${fmt(o.net, o.code)} ${o.code}</span>`).join('')}</div>` : ''}
       <div class="header-actions">
