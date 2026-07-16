@@ -112,6 +112,31 @@
     height:36px;
     font-size:16px;
   }
+  .sidebar-identity{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    padding:10px 8px;
+    margin-top:2px;
+    border-top:1px solid var(--border);
+    border-radius:10px;
+    cursor:pointer;
+  }
+  .sidebar-identity:hover{background:var(--surface-alt);}
+  .sidebar-identity-text{min-width:0;}
+  .sidebar-identity-name{
+    font-size:13px;
+    font-weight:600;
+    color:var(--text);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .sidebar-identity-switch{
+    font-size:11px;
+    font-weight:600;
+    color:var(--accent);
+  }
   @media (max-width:760px){
     .layout{flex-direction:column;}
     .sidebar{
@@ -145,6 +170,13 @@
       flex-shrink:0;
     }
     .sidebar-newtrip input{width:96px;}
+    .sidebar-identity{
+      border-top:none;
+      margin-top:0;
+      padding:0;
+      flex-shrink:0;
+    }
+    .sidebar-identity-text{display:none;}
   }
 
   .main{
@@ -268,7 +300,7 @@
   .header-actions{
     display:flex;
     align-items:center;
-    justify-content:space-between;
+    justify-content:flex-end;
     flex-wrap:wrap;
     gap:10px;
     margin-top:16px;
@@ -286,28 +318,8 @@
   }
   .btn-danger{background:var(--negative);color:#fff;}
   @media (max-width:460px){
-    .header-actions{flex-direction:column;align-items:stretch;}
     .header-buttons{width:100%;}
     .header-buttons .btn-settle{flex:1;padding:9px 8px;}
-  }
-  .identity-row{
-    display:flex;
-    align-items:center;
-    gap:6px;
-  }
-  .identity-row span{
-    font-size:12px;
-    color:var(--text-soft);
-  }
-  .identity-row .switch-link{
-    font-size:12px;
-    color:var(--accent);
-    font-weight:600;
-    text-decoration:none;
-    cursor:pointer;
-    background:none;
-    border:none;
-    padding:0;
   }
 
   /* --- Tabs --- */
@@ -374,6 +386,24 @@
   }
   .row:last-child{border-bottom:none;}
   .row-avatar{flex-shrink:0;}
+  .row-date{
+    width:32px;
+    flex-shrink:0;
+    text-align:center;
+  }
+  .row-date-month{
+    font-size:10px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.3px;
+    color:var(--text-faint);
+  }
+  .row-date-day{
+    font-size:15px;
+    font-weight:700;
+    color:var(--text);
+    margin-top:1px;
+  }
   .row-main{min-width:0;flex:1;}
   .row-title{font-size:14.5px;font-weight:600;}
   .row-sub{
@@ -778,6 +808,13 @@ function renderSidebar(){
       <input type="text" id="newTripInput" placeholder="New trip name">
       <button class="icon-round" id="addTripBtn" title="Create trip">+</button>
     </div>
+    <div class="sidebar-identity" id="sidebarIdentity" title="Switch who you are">
+      ${identity ? avatarHtml(identity.name, 30) : `<div class="avatar" style="width:30px;height:30px;background:var(--text-faint)">?</div>`}
+      <div class="sidebar-identity-text">
+        <div class="sidebar-identity-name">${identity ? escapeHtml(identity.name) : 'Not signed in'}</div>
+        <div class="sidebar-identity-switch">switch</div>
+      </div>
+    </div>
   `;
   sidebar.querySelectorAll('[data-open]').forEach(el => {
     el.onclick = async () => { await openTrip(el.dataset.open); };
@@ -792,6 +829,7 @@ function renderSidebar(){
       await deleteTrip(el.dataset.delete);
     };
   });
+  sidebar.querySelector('#sidebarIdentity').onclick = () => openLogin(false);
   const input = sidebar.querySelector('#newTripInput');
   async function submitNewTrip(){
     const name = input.value.trim();
@@ -865,6 +903,12 @@ function fmt(n, currency){
 function friendName(id){
   const f = data.friends.find(f => f.id === id);
   return f ? f.name : 'Unknown';
+}
+function dateBadgeHtml(iso){
+  const d = iso ? new Date(iso) : null;
+  if(!d || isNaN(d)) return '';
+  const month = d.toLocaleDateString('en-US', {month:'short'});
+  return `<div class="row-date-month">${month}</div><div class="row-date-day">${d.getDate()}</div>`;
 }
 function currenciesUsed(){
   const set = new Set([data.settings.defaultCurrency]);
@@ -953,14 +997,14 @@ function openLogin(forced){
   overlay.querySelectorAll('.chip').forEach(chip => {
     chip.onclick = () => {
       identity = {name: chip.dataset.name};
-      saveIdentityLocal(); resolveIdentityForTrip(); overlay.remove(); render();
+      saveIdentityLocal(); resolveIdentityForTrip(); overlay.remove(); render(); renderSidebar();
     };
   });
   overlay.querySelector('#loginBtn').onclick = () => {
     const name = overlay.querySelector('#loginNameInput').value.trim();
     if(!name){ alert('Enter a name, or tap yourself in the list above.'); return; }
     identity = {name};
-    saveIdentityLocal(); resolveIdentityForTrip(); overlay.remove(); render();
+    saveIdentityLocal(); resolveIdentityForTrip(); overlay.remove(); render(); renderSidebar();
   };
 }
 
@@ -1265,6 +1309,7 @@ function render(){
             : `<div class="row-stake ${stake>0?'positive':'negative'}">${stake>0?'you lent':'you owe'} ${fmt(Math.abs(stake), e.currency)}</div>`;
         }
         return `<div class="row">
+          <div class="row-date">${dateBadgeHtml(e.date)}</div>
           <div class="row-avatar">${avatarHtml(friendName(e.paidBy), 34)}</div>
           <div class="row-main">
             <div class="row-title">${escapeHtml(isPayment ? friendName(e.paidBy) + ' → ' + friendName(e.shares[0].id) : e.description)}</div>
@@ -1346,10 +1391,6 @@ function render(){
       <div class="balance-line ${balClass}">${balSentence}</div>
       ${others.length ? `<div class="summary-extra">${others.map(o => `<span class="mini-pill ${o.net>0?'positive':'negative'}">${o.net<0?'-':'+'}${fmt(o.net, o.code)} ${o.code}</span>`).join('')}</div>` : ''}
       <div class="header-actions">
-        <div class="identity-row">
-          <span>${identity ? 'Signed in as ' + escapeHtml(identity.name) : 'Not signed in'}</span>
-          <button class="switch-link" onclick="openLogin(false)">switch</button>
-        </div>
         <div class="header-buttons">
           <button class="btn btn-primary btn-settle" onclick="switchTab('balances')">Settle up</button>
           <button class="btn btn-danger btn-settle" onclick="openAddExpense()">Add an expense</button>
