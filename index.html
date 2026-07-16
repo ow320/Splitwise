@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vancouver Trip 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
+<style>
+  :root{
+    --bg:#F5F7F9;
+    --surface:#FFFFFF;
+    --surface-alt:#F0F3F5;
+    --text:#12161C;
+    --text-soft:#6B7480;
+    --text-faint:#9CA4AD;
+    --accent:#0F6659;
+    --accent-strong:#0B4F45;
+    --accent-soft:#E4F1EE;
+    --negative:#C1443A;
+    --negative-soft:#FBEAE8;
+    --border:#E7E9EC;
+    --radius-lg:20px;
+    --radius-md:14px;
+    --radius-sm:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{
+    max-width:460px;
+    margin:0 auto;
+    min-height:100vh;
+    padding-bottom:110px;
+    position:relative;
+  }
+
+  /* --- App bar --- */
+  .appbar{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    padding:24px 20px 4px;
+  }
+  .appbar-title{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-weight:800;
+    font-size:22px;
+    letter-spacing:-0.3px;
+    line-height:1.15;
+  }
+  .appbar-sub{
+    font-size:12.5px;
+    color:var(--text-soft);
+    margin-top:3px;
+  }
+  .icon-round{
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    background:var(--surface);
+    border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    flex-shrink:0;
+    font-size:16px;
+    color:var(--text-soft);
+  }
+  .icon-round:hover{background:var(--surface-alt);}
+
+  /* --- Summary card (signature element) --- */
+  .summary{
+    margin:14px 20px 0;
+    background:var(--surface);
+    border-radius:var(--radius-lg);
+    padding:22px 22px 20px;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 1px 2px rgba(18,22,28,0.04), 0 8px 24px rgba(18,22,28,0.05);
+  }
+  .summary-skyline{
+    position:absolute;
+    top:0; right:0;
+    width:170px;
+    height:100px;
+    opacity:0.55;
+    pointer-events:none;
+  }
+  .summary-label{
+    font-size:12px;
+    font-weight:600;
+    color:var(--text-soft);
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+    position:relative;
+  }
+  .summary-amount{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    font-size:34px;
+    margin-top:4px;
+    position:relative;
+  }
+  .summary-amount.positive{color:var(--accent);}
+  .summary-amount.negative{color:var(--negative);}
+  .summary-amount.zero{color:var(--text-faint);}
+  .summary-extra{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-top:12px;
+    position:relative;
+  }
+  .mini-pill{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    font-weight:500;
+    padding:4px 9px;
+    border-radius:20px;
+    background:var(--surface-alt);
+    color:var(--text-soft);
+  }
+  .mini-pill.positive{background:var(--accent-soft);color:var(--accent-strong);}
+  .mini-pill.negative{background:var(--negative-soft);color:var(--negative);}
+
+  .identity-row{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1px solid var(--border);
+    position:relative;
+  }
+  .identity-row span{
+    font-size:12px;
+    color:var(--text-soft);
+  }
+  .identity-row .switch-link{
+    font-size:12px;
+    color:var(--accent);
+    font-weight:600;
+    text-decoration:none;
+    cursor:pointer;
+    background:none;
+    border:none;
+    padding:0;
+  }
+
+  /* --- Tabs --- */
+  .tabs{
+    display:flex;
+    margin:18px 20px 6px;
+    background:var(--surface-alt);
+    border-radius:12px;
+    padding:4px;
+  }
+  .tab{
+    flex:1;
+    text-align:center;
+    padding:9px 4px;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    border-radius:9px;
+    cursor:pointer;
+    color:var(--text-soft);
+    user-select:none;
+    transition:background 0.15s, color 0.15s;
+  }
+  .tab.active{
+    background:var(--surface);
+    color:var(--text);
+    box-shadow:0 1px 3px rgba(18,22,28,0.08);
+  }
+
+  .content{padding:14px 20px 0;}
+  .section-title{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-weight:700;
+    font-size:14.5px;
+    margin:18px 2px 8px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    color:var(--text);
+  }
+  .section-title .tag{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    font-weight:500;
+    color:var(--text-faint);
+    text-transform:none;
+    letter-spacing:0;
+  }
+
+  /* --- Cards / rows --- */
+  .card{
+    background:var(--surface);
+    border-radius:var(--radius-md);
+    border:1px solid var(--border);
+    overflow:hidden;
+  }
+  .row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:13px 16px;
+    border-bottom:1px solid var(--border);
+    gap:10px;
+  }
+  .row:last-child{border-bottom:none;}
+  .row-main{min-width:0;flex:1;}
+  .row-title{font-size:14.5px;font-weight:600;}
+  .row-sub{
+    font-size:12px;
+    color:var(--text-soft);
+    margin-top:2px;
+  }
+  .row-amount{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    font-size:14.5px;
+    white-space:nowrap;
+  }
+  .icon-btn{
+    background:none;
+    border:none;
+    color:var(--text-faint);
+    font-size:15px;
+    cursor:pointer;
+    padding:4px 6px;
+    line-height:1;
+  }
+  .icon-btn:hover{color:var(--negative);}
+
+  .empty{
+    text-align:center;
+    color:var(--text-faint);
+    font-size:13px;
+    padding:32px 16px;
+    line-height:1.6;
+  }
+
+  /* --- FAB --- */
+  .fab{
+    position:fixed;
+    bottom:24px;
+    left:50%;
+    transform:translateX(158px);
+    width:56px;height:56px;
+    border-radius:50%;
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    font-size:26px;
+    font-weight:400;
+    cursor:pointer;
+    box-shadow:0 6px 18px rgba(15,102,89,0.35);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .fab:active{transform:translateX(158px) scale(0.95);}
+  @media (max-width:460px){
+    .fab{ right:20px; left:auto; transform:none; }
+    .fab:active{ transform:scale(0.95); }
+  }
+
+  /* --- Modal --- */
+  .overlay{
+    position:fixed;inset:0;
+    background:rgba(18,22,28,0.45);
+    display:flex;align-items:flex-end;justify-content:center;
+    z-index:20;
+  }
+  .modal{
+    background:var(--bg);
+    width:100%;
+    max-width:460px;
+    border-radius:22px 22px 0 0;
+    padding:20px 20px 26px;
+    max-height:88vh;
+    overflow-y:auto;
+  }
+  .modal.centered{border-radius:20px;max-width:400px;margin:0 20px;}
+  .modal h3{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-weight:700;
+    font-size:18px;
+    margin:2px 0 4px;
+  }
+  .modal-intro{
+    font-size:13px;
+    color:var(--text-soft);
+    line-height:1.5;
+    margin-bottom:4px;
+  }
+  label{
+    display:block;
+    font-size:11.5px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    color:var(--text-soft);
+    margin:16px 0 6px;
+  }
+  input[type=text], input[type=number], select{
+    width:100%;
+    padding:12px 13px;
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    background:var(--surface);
+    font-family:'Inter',sans-serif;
+    font-size:14.5px;
+    color:var(--text);
+  }
+  input:focus, select:focus{outline:2px solid var(--accent);outline-offset:1px;}
+  .field-row{display:flex;gap:10px;}
+  .field-row > div{flex:1;}
+  .chip-row{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{
+    padding:8px 13px;
+    border-radius:20px;
+    border:1px solid var(--border);
+    font-size:13px;
+    font-weight:500;
+    cursor:pointer;
+    background:var(--surface);
+    user-select:none;
+    color:var(--text-soft);
+  }
+  .chip.selected{
+    background:var(--accent-soft);
+    border-color:var(--accent);
+    color:var(--accent-strong);
+    font-weight:600;
+  }
+  .segmented{
+    display:flex;
+    background:var(--surface-alt);
+    border-radius:10px;
+    padding:3px;
+    gap:2px;
+  }
+  .segmented .seg{
+    flex:1;
+    text-align:center;
+    padding:8px 4px;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--text-soft);
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .segmented .seg.active{
+    background:var(--surface);
+    color:var(--text);
+    box-shadow:0 1px 3px rgba(18,22,28,0.1);
+  }
+  .split-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:9px 2px;
+    gap:10px;
+  }
+  .split-row .name{font-size:13.5px;font-weight:500;flex:1;}
+  .split-row input{width:88px;padding:8px 10px;font-size:13.5px;text-align:right;}
+  .split-total{
+    display:flex;
+    justify-content:space-between;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--text-soft);
+    margin-top:8px;
+    padding-top:8px;
+    border-top:1px dashed var(--border);
+  }
+  .split-total.ok{color:var(--accent-strong);}
+  .split-total.off{color:var(--negative);}
+  .modal-actions{
+    display:flex;
+    gap:10px;
+    margin-top:22px;
+  }
+  .btn{
+    flex:1;
+    padding:12px;
+    border-radius:var(--radius-sm);
+    border:none;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:13.5px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-secondary{background:var(--surface);color:var(--text-soft);border:1px solid var(--border);}
+
+  .settle-row .arrow{color:var(--accent);margin:0 6px;font-weight:600;}
+
+  .loading-screen{
+    display:flex;align-items:center;justify-content:center;
+    height:70vh;
+    font-family:'IBM Plex Mono',monospace;
+    color:var(--text-faint);
+    font-size:13px;
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="loading-screen">loading trip…</div>
+</div>
+
+<script>
+const CURRENCIES = {
+  CAD:{symbol:'$', label:'Canadian Dollar'},
+  USD:{symbol:'$', label:'US Dollar'},
+  EUR:{symbol:'€', label:'Euro'},
+  GBP:{symbol:'£', label:'British Pound'},
+  JPY:{symbol:'¥', label:'Japanese Yen'},
+  AUD:{symbol:'$', label:'Australian Dollar'},
+  CHF:{symbol:'Fr', label:'Swiss Franc'},
+  INR:{symbol:'₹', label:'Indian Rupee'}
+};
+
+// ---- Firebase config ----
+// Replace these placeholder values with the config from your own Firebase
+// project (Project settings > General > Your apps > SDK setup and
+// configuration). See README.md for the full walkthrough.
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+// Every trip/group is its own document in this Firestore collection.
+const TRIPS_COLLECTION = 'trips';
+const LEGACY_TRIP_ID = 'vancouver-trip-2026';
+
+let db = null;
+let trips = [];           // [{id, name}] — every trip this device knows about
+let activeTripId = null;
+let unsubscribe = null;
+let data = { name: '', friends: [], expenses: [], settings: { defaultCurrency: 'CAD' } };
+let identity = null;      // {name} — global per device; id is resolved per trip
+let activeTab = 'expenses';
+let loaded = false;
+
+function setupNeeded(){
+  return firebaseConfig.apiKey === 'YOUR_API_KEY';
+}
+function escapeHtml(s){
+  return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function loadIdentityLocal(){
+  try{
+    const raw = localStorage.getItem('tally-identity');
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+function saveIdentityLocal(){
+  try{ localStorage.setItem('tally-identity', JSON.stringify({name: identity.name})); }
+  catch(e){ console.error('Save identity failed', e); }
+}
+
+function showFatal(title, body){
+  document.getElementById('app').innerHTML = `
+    <div style="padding:40px 24px;font-family:'Inter',sans-serif;line-height:1.6;color:#12161C;">
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;">${title}</h2>
+      <p>${body}</p>
+    </div>`;
+}
+
+async function loadData(){
+  if(setupNeeded()){
+    showFatal('Setup needed', "This page needs a Firebase project connected before it'll work. Open <code>index.html</code>, fill in the <code>firebaseConfig</code> object near the top of the script with your own project's values, and redeploy. Full steps are in <code>README.md</code>.");
+    return;
+  }
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+
+  try{
+    await refreshTripsList();
+    if(trips.length === 0){
+      // First-ever run: create a starter trip, reusing the old fixed id
+      // so anyone who deployed this before groups existed keeps their data.
+      await createTrip('Vancouver Trip 2026', LEGACY_TRIP_ID);
+    }
+  }catch(e){
+    console.error('Load failed', e);
+    showFatal("Couldn't connect", 'Double-check your Firebase config and Firestore security rules (see README.md).');
+    return;
+  }
+
+  identity = loadIdentityLocal();
+
+  let startId = localStorage.getItem('tally-active-trip');
+  if(!startId || !trips.some(t => t.id === startId)) startId = trips[0].id;
+  await openTrip(startId);
+}
+
+async function refreshTripsList(){
+  const snap = await db.collection(TRIPS_COLLECTION).get();
+  trips = snap.docs.map(d => ({id: d.id, name: (d.data().name) || 'Untitled trip'}));
+}
+
+async function createTrip(name, idOverride){
+  const id = idOverride || ('t' + Date.now());
+  const trip = { name, friends: [], expenses: [], settings: { defaultCurrency: 'CAD' } };
+  await db.collection(TRIPS_COLLECTION).doc(id).set(trip);
+  trips.push({id, name});
+  return id;
+}
+
+async function deleteTrip(id){
+  await db.collection(TRIPS_COLLECTION).doc(id).delete();
+  trips = trips.filter(t => t.id !== id);
+  if(trips.length === 0){
+    await createTrip('New trip');
+  }
+  if(id === activeTripId){
+    await openTrip(trips[0].id);
+  }
+}
+
+function resolveIdentityForTrip(){
+  if(!identity || !identity.name) return;
+  let match = data.friends.find(f => f.name.toLowerCase() === identity.name.toLowerCase());
+  if(!match){
+    match = {id: 'f' + Date.now(), name: identity.name};
+    data.friends.push(match);
+    saveData();
+  }
+  identity.id = match.id;
+}
+
+async function openTrip(id){
+  if(unsubscribe){ unsubscribe(); unsubscribe = null; }
+  activeTripId = id;
+  try{ localStorage.setItem('tally-active-trip', id); }catch(e){}
+
+  const snap = await db.collection(TRIPS_COLLECTION).doc(id).get();
+  data = snap.exists ? snap.data() : { name: 'Trip', friends: [], expenses: [] };
+  if(!data.name) data.name = 'Vancouver Trip 2026';
+  if(!data.settings) data.settings = { defaultCurrency: 'CAD' };
+  if(!data.friends) data.friends = [];
+  if(!data.expenses) data.expenses = [];
+
+  resolveIdentityForTrip();
+  loaded = true;
+  render();
+  if(!identity || !identity.name) openLogin(true);
+
+  unsubscribe = db.collection(TRIPS_COLLECTION).doc(id).onSnapshot(liveSnap => {
+    if(document.querySelector('.overlay')) return;
+    if(liveSnap.exists){
+      data = liveSnap.data();
+      if(!data.settings) data.settings = { defaultCurrency: 'CAD' };
+      if(!data.friends) data.friends = [];
+      if(!data.expenses) data.expenses = [];
+      resolveIdentityForTrip();
+      render();
+    }
+  });
+}
+
+async function saveData(){
+  try{ await db.collection(TRIPS_COLLECTION).doc(activeTripId).set(data); }
+  catch(e){
+    console.error('Save failed', e);
+    alert("Couldn't save — check your connection and try again.");
+  }
+}
+
+/* ---------- Trip switcher ---------- */
+function openTripSwitcher(){
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  const rows = trips.map(t => `
+    <div class="row">
+      <div class="row-main row-title" style="cursor:pointer;" data-open="${t.id}">${escapeHtml(t.name)}${t.id===activeTripId ? ' <span style="color:var(--text-faint);font-weight:400;">(current)</span>' : ''}</div>
+      ${trips.length > 1 ? `<button class="icon-btn" data-delete="${t.id}" title="Delete trip">✕</button>` : ''}
+    </div>`).join('');
+  overlay.innerHTML = `
+    <div class="modal">
+      <h3>Your trips</h3>
+      <div class="modal-intro">Switch between trips, or start a new one.</div>
+      <div class="card" style="margin-top:14px;">${rows}</div>
+      <label>New trip name</label>
+      <input type="text" id="newTripInput" placeholder="e.g. Whistler Weekend">
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelBtn">Close</button>
+        <button class="btn btn-primary" id="createTripBtn">Create trip</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.onclick = (e) => { if(e.target === overlay) overlay.remove(); };
+  overlay.querySelector('#cancelBtn').onclick = () => overlay.remove();
+
+  overlay.querySelectorAll('[data-open]').forEach(el => {
+    el.onclick = async () => { overlay.remove(); await openTrip(el.dataset.open); };
+  });
+  overlay.querySelectorAll('[data-delete]').forEach(el => {
+    el.onclick = async (e) => {
+      e.stopPropagation();
+      if(!confirm('Delete this trip and all its expenses? This cannot be undone.')) return;
+      await deleteTrip(el.dataset.delete);
+      overlay.remove();
+      openTripSwitcher();
+    };
+  });
+  overlay.querySelector('#createTripBtn').onclick = async () => {
+    const name = overlay.querySelector('#newTripInput').value.trim();
+    if(!name){ alert('Give the trip a name.'); return; }
+    const id = await createTrip(name);
+    overlay.remove();
+    await openTrip(id);
+  };
+}
+
+function fmt(n, currency){
+  const code = currency || data.settings.defaultCurrency;
+  try{
+    return new Intl.NumberFormat('en-US', {style:'currency', currency: code, currencyDisplay:'narrowSymbol'}).format(Math.abs(n));
+  }catch(e){
+    const sym = (CURRENCIES[code] && CURRENCIES[code].symbol) || code + ' ';
+    return sym + Math.abs(n).toFixed(2);
+  }
+}
+function friendName(id){
+  const f = data.friends.find(f => f.id === id);
+  return f ? f.name : 'Unknown';
+}
+function currenciesUsed(){
+  const set = new Set([data.settings.defaultCurrency]);
+  data.expenses.forEach(e => set.add(e.currency));
+  return Array.from(set);
+}
+function computeBalances(currency){
+  const net = {};
+  data.friends.forEach(f => net[f.id] = 0);
+  data.expenses.filter(e => e.currency === currency).forEach(exp => {
+    net[exp.paidBy] = (net[exp.paidBy] || 0) + exp.amount;
+    exp.shares.forEach(s => { net[s.id] = (net[s.id] || 0) - s.amount; });
+  });
+  return net;
+}
+function simplifyDebts(net){
+  const debtors = [], creditors = [];
+  Object.entries(net).forEach(([id, amt]) => {
+    if(amt < -0.005) debtors.push({id, amt: -amt});
+    else if(amt > 0.005) creditors.push({id, amt});
+  });
+  debtors.sort((a,b)=>b.amt-a.amt);
+  creditors.sort((a,b)=>b.amt-a.amt);
+  const settlements = [];
+  let i=0, j=0;
+  while(i < debtors.length && j < creditors.length){
+    const pay = Math.min(debtors[i].amt, creditors[j].amt);
+    settlements.push({from: debtors[i].id, to: creditors[j].id, amount: pay});
+    debtors[i].amt -= pay; creditors[j].amt -= pay;
+    if(debtors[i].amt < 0.01) i++;
+    if(creditors[j].amt < 0.01) j++;
+  }
+  return settlements;
+}
+function computeShares(type, total, participantIds, valuesMap){
+  const n = participantIds.length;
+  if(type === 'equal'){
+    const base = Math.floor((total/n)*100)/100;
+    let sum = 0; const shares = [];
+    participantIds.forEach((pid, idx) => {
+      if(idx < n-1){ shares.push({id: pid, amount: base}); sum += base; }
+      else{ shares.push({id: pid, amount: +(total-sum).toFixed(2)}); }
+    });
+    return shares;
+  }
+  if(type === 'exact'){
+    return participantIds.map(pid => ({id: pid, amount: +(parseFloat(valuesMap[pid])||0).toFixed(2)}));
+  }
+  if(type === 'percentage'){
+    return participantIds.map(pid => ({id: pid, amount: +(total * (parseFloat(valuesMap[pid])||0) / 100).toFixed(2)}));
+  }
+  if(type === 'shares'){
+    const totalShares = participantIds.reduce((s,pid) => s + (parseFloat(valuesMap[pid])||0), 0) || 1;
+    return participantIds.map(pid => ({id: pid, amount: +(total * (parseFloat(valuesMap[pid])||0) / totalShares).toFixed(2)}));
+  }
+  return [];
+}
+
+function switchTab(tab){ activeTab = tab; render(); }
+
+/* ---------- Login ---------- */
+function openLogin(forced){
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  const existingChips = data.friends.map(f =>
+    `<div class="chip" data-id="${f.id}" data-name="${f.name.replace(/"/g,'&quot;')}">${f.name}</div>`
+  ).join('');
+  overlay.innerHTML = `
+    <div class="modal centered">
+      <h3>Who are you?</h3>
+      <div class="modal-intro">${forced ? "Pick your name so entries can be tracked back to you." : "Switch to a different name on this device."}</div>
+      ${existingChips ? `<label>Already on the trip</label><div class="chip-row">${existingChips}</div>` : ''}
+      <label>${existingChips ? "Or add yourself" : "Your name"}</label>
+      <input type="text" id="loginNameInput" placeholder="e.g. Priya" autofocus>
+      <div class="modal-actions">
+        ${forced ? '' : '<button class="btn btn-secondary" id="cancelBtn">Cancel</button>'}
+        <button class="btn btn-primary" id="loginBtn">Continue</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  if(!forced){
+    overlay.onclick = (e) => { if(e.target === overlay) overlay.remove(); };
+    overlay.querySelector('#cancelBtn').onclick = () => overlay.remove();
+  }
+  overlay.querySelectorAll('.chip').forEach(chip => {
+    chip.onclick = () => {
+      identity = {name: chip.dataset.name};
+      saveIdentityLocal(); resolveIdentityForTrip(); overlay.remove(); render();
+    };
+  });
+  overlay.querySelector('#loginBtn').onclick = () => {
+    const name = overlay.querySelector('#loginNameInput').value.trim();
+    if(!name){ alert('Enter a name, or tap yourself in the list above.'); return; }
+    identity = {name};
+    saveIdentityLocal(); resolveIdentityForTrip(); overlay.remove(); render();
+  };
+}
+
+/* ---------- Settings ---------- */
+function openSettings(){
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="modal centered">
+      <h3>Trip settings</h3>
+      <div class="modal-intro">Sets the default currency for new expenses.</div>
+      <label>Default currency</label>
+      <select id="currencySelect">
+        ${Object.entries(CURRENCIES).map(([code,c]) => `<option value="${code}" ${code===data.settings.defaultCurrency?'selected':''}>${code} — ${c.label}</option>`).join('')}
+      </select>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+        <button class="btn btn-primary" id="saveBtn">Save</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.onclick = (e) => { if(e.target === overlay) overlay.remove(); };
+  overlay.querySelector('#cancelBtn').onclick = () => overlay.remove();
+  overlay.querySelector('#saveBtn').onclick = () => {
+    data.settings.defaultCurrency = overlay.querySelector('#currencySelect').value;
+    saveData(); overlay.remove(); render();
+  };
+}
+
+/* ---------- Friends ---------- */
+function openAddFriend(){
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="modal centered">
+      <h3>Add someone to the trip</h3>
+      <label>Name</label>
+      <input type="text" id="friendNameInput" placeholder="e.g. Priya" autofocus>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+        <button class="btn btn-primary" id="saveBtn">Add</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.onclick = (e) => { if(e.target === overlay) overlay.remove(); };
+  overlay.querySelector('#cancelBtn').onclick = () => overlay.remove();
+  overlay.querySelector('#saveBtn').onclick = () => {
+    const name = overlay.querySelector('#friendNameInput').value.trim();
+    if(!name) return;
+    data.friends.push({id: 'f' + Date.now(), name});
+    saveData(); overlay.remove(); render();
+  };
+}
+function removeFriend(id){
+  if(identity && id === identity.id){ alert("You can't remove yourself while signed in as this person."); return; }
+  const used = data.expenses.some(e => e.paidBy === id || e.shares.some(s => s.id === id));
+  if(used){ alert("Can't remove — this person is part of an existing expense."); return; }
+  data.friends = data.friends.filter(f => f.id !== id);
+  saveData(); render();
+}
+
+/* ---------- Add expense ---------- */
+let selectedSplit = [];
+let splitType = 'equal';
+let splitValues = {};
+
+function openAddExpense(){
+  selectedSplit = data.friends.map(f => f.id);
+  splitType = 'equal';
+  splitValues = {};
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <h3>Add an expense</h3>
+      <label>What was it for</label>
+      <input type="text" id="descInput" placeholder="e.g. Dinner at Nori">
+      <div class="field-row">
+        <div>
+          <label>Amount</label>
+          <input type="number" id="amountInput" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div>
+          <label>Currency</label>
+          <select id="currencySelect">
+            ${Object.entries(CURRENCIES).map(([code,c]) => `<option value="${code}" ${code===data.settings.defaultCurrency?'selected':''}>${code} ${c.symbol}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <label>Paid by</label>
+      <select id="paidBySelect">
+        ${data.friends.map(f => `<option value="${f.id}">${f.name}</option>`).join('')}
+      </select>
+      <label>Split among</label>
+      <div class="chip-row" id="splitChips">
+        ${data.friends.map(f => `<div class="chip selected" data-id="${f.id}">${f.name}</div>`).join('')}
+      </div>
+      <label>Split method</label>
+      <div class="segmented" id="splitSegmented">
+        <div class="seg active" data-type="equal">Equal</div>
+        <div class="seg" data-type="exact">Exact</div>
+        <div class="seg" data-type="percentage">%</div>
+        <div class="seg" data-type="shares">Shares</div>
+      </div>
+      <div id="splitDetail"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+        <button class="btn btn-primary" id="saveBtn">Save</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.onclick = (e) => { if(e.target === overlay) overlay.remove(); };
+  overlay.querySelector('#cancelBtn').onclick = () => overlay.remove();
+
+  const amountInput = overlay.querySelector('#amountInput');
+  const detailEl = overlay.querySelector('#splitDetail');
+
+  function currentTotal(){ return parseFloat(amountInput.value) || 0; }
+
+  function renderDetail(){
+    if(splitType === 'equal'){
+      detailEl.innerHTML = '';
+      return;
+    }
+    const total = currentTotal();
+    let unit = splitType === 'percentage' ? '%' : (splitType === 'shares' ? '' : '');
+    detailEl.innerHTML = selectedSplit.map(pid => {
+      if(!(pid in splitValues)){
+        if(splitType === 'exact') splitValues[pid] = selectedSplit.length ? (total/selectedSplit.length).toFixed(2) : '0';
+        else if(splitType === 'percentage') splitValues[pid] = selectedSplit.length ? (100/selectedSplit.length).toFixed(1) : '0';
+        else splitValues[pid] = '1';
+      }
+      return `<div class="split-row">
+        <div class="name">${friendName(pid)}</div>
+        <input type="number" step="0.01" class="split-value" data-id="${pid}" value="${splitValues[pid]}">
+      </div>`;
+    }).join('') + renderSplitTotal(total);
+
+    detailEl.querySelectorAll('.split-value').forEach(inp => {
+      inp.oninput = () => {
+        splitValues[inp.dataset.id] = inp.value;
+        const totalLine = detailEl.querySelector('.split-total');
+        if(totalLine) totalLine.outerHTML = renderSplitTotal(currentTotal());
+      };
+    });
+  }
+
+  function renderSplitTotal(total){
+    if(splitType === 'exact'){
+      const sum = selectedSplit.reduce((s,pid) => s + (parseFloat(splitValues[pid])||0), 0);
+      const diff = +(total - sum).toFixed(2);
+      const ok = Math.abs(diff) < 0.02;
+      return `<div class="split-total ${ok?'ok':'off'}">Allocated ${sum.toFixed(2)} of ${total.toFixed(2)}${ok?' ✓':` — ${diff>0?'remaining':'over by'} ${Math.abs(diff).toFixed(2)}`}</div>`;
+    }
+    if(splitType === 'percentage'){
+      const sum = selectedSplit.reduce((s,pid) => s + (parseFloat(splitValues[pid])||0), 0);
+      const ok = Math.abs(sum-100) < 0.5;
+      return `<div class="split-total ${ok?'ok':'off'}">${sum.toFixed(1)}% of 100%${ok?' ✓':''}</div>`;
+    }
+    if(splitType === 'shares'){
+      const sum = selectedSplit.reduce((s,pid) => s + (parseFloat(splitValues[pid])||0), 0);
+      return `<div class="split-total ${sum>0?'ok':'off'}">${sum} total share${sum===1?'':'s'}</div>`;
+    }
+    return '';
+  }
+
+  overlay.querySelectorAll('.chip').forEach(chip => {
+    chip.onclick = () => {
+      const id = chip.dataset.id;
+      if(selectedSplit.includes(id)){
+        selectedSplit = selectedSplit.filter(x => x !== id);
+        chip.classList.remove('selected');
+        delete splitValues[id];
+      } else {
+        selectedSplit.push(id);
+        chip.classList.add('selected');
+      }
+      renderDetail();
+    };
+  });
+
+  overlay.querySelectorAll('.seg').forEach(seg => {
+    seg.onclick = () => {
+      overlay.querySelectorAll('.seg').forEach(s => s.classList.remove('active'));
+      seg.classList.add('active');
+      splitType = seg.dataset.type;
+      splitValues = {};
+      renderDetail();
+    };
+  });
+
+  amountInput.oninput = () => { if(splitType !== 'equal') renderDetail(); };
+
+  overlay.querySelector('#saveBtn').onclick = () => {
+    const desc = overlay.querySelector('#descInput').value.trim();
+    const amount = parseFloat(amountInput.value);
+    const currency = overlay.querySelector('#currencySelect').value;
+    const paidBy = overlay.querySelector('#paidBySelect').value;
+    if(!desc || !amount || amount <= 0){ alert('Add a description and a valid amount.'); return; }
+    if(selectedSplit.length === 0){ alert('Select at least one person to split with.'); return; }
+
+    if(splitType === 'exact'){
+      const sum = selectedSplit.reduce((s,pid) => s + (parseFloat(splitValues[pid])||0), 0);
+      if(Math.abs(sum - amount) > 0.02){ alert(`The exact amounts add up to ${sum.toFixed(2)}, not ${amount.toFixed(2)}. Adjust before saving.`); return; }
+    }
+    if(splitType === 'percentage'){
+      const sum = selectedSplit.reduce((s,pid) => s + (parseFloat(splitValues[pid])||0), 0);
+      if(Math.abs(sum - 100) > 0.5){ alert(`Percentages add up to ${sum.toFixed(1)}%, not 100%. Adjust before saving.`); return; }
+    }
+    if(splitType === 'shares'){
+      const sum = selectedSplit.reduce((s,pid) => s + (parseFloat(splitValues[pid])||0), 0);
+      if(sum <= 0){ alert('Enter at least one share.'); return; }
+    }
+
+    const shares = computeShares(splitType, amount, selectedSplit, splitValues);
+    data.expenses.unshift({
+      id: 'e' + Date.now(),
+      description: desc,
+      amount: amount,
+      currency: currency,
+      paidBy: paidBy,
+      splitType: splitType,
+      shares: shares,
+      enteredBy: identity ? identity.id : null,
+      date: new Date().toISOString()
+    });
+    saveData(); overlay.remove(); render();
+  };
+
+  renderDetail();
+}
+function removeExpense(id){
+  data.expenses = data.expenses.filter(e => e.id !== id);
+  saveData(); render();
+}
+
+/* ---------- Render ---------- */
+const SKYLINE_SVG = `
+<svg class="summary-skyline" viewBox="0 0 170 100" xmlns="http://www.w3.org/2000/svg">
+  <polyline points="0,70 20,70 20,45 30,45 30,60 45,60 45,30 60,30 60,70 75,70 75,50 85,50 85,70 170,70"
+    fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="90,72 110,40 122,58 138,25 155,55 170,72"
+    fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="0" y1="78" x2="170" y2="78" stroke="var(--accent)" stroke-width="2" stroke-dasharray="1 6" stroke-linecap="round"/>
+</svg>`;
+
+function render(){
+  const app = document.getElementById('app');
+  if(!loaded){ app.innerHTML = `<div class="loading-screen">loading trip…</div>`; return; }
+
+  const defaultCurrency = data.settings.defaultCurrency;
+  const usedCurrencies = currenciesUsed();
+  const yourBalances = usedCurrencies.map(c => ({code: c, net: identity ? (computeBalances(c)[identity.id] || 0) : 0}));
+  const primary = yourBalances.find(b => b.code === defaultCurrency) || yourBalances[0] || {code: defaultCurrency, net: 0};
+  const others = yourBalances.filter(b => b.code !== primary.code && Math.abs(b.net) > 0.005);
+
+  const balClass = primary.net > 0.005 ? 'positive' : (primary.net < -0.005 ? 'negative' : 'zero');
+  const balLabel = primary.net > 0.005 ? "you're owed" : (primary.net < -0.005 ? 'you owe' : 'all settled up');
+
+  let bodyHtml = '';
+
+  if(activeTab === 'expenses'){
+    if(data.expenses.length === 0){
+      bodyHtml = `<div class="card"><div class="empty">No expenses yet.<br>Tap the + button to add the first one.</div></div>`;
+    } else {
+      bodyHtml = `<div class="card">` + data.expenses.map(e => {
+        const methodLabel = e.splitType === 'equal' ? '' : ` · by ${e.splitType}`;
+        return `<div class="row">
+          <div class="row-main">
+            <div class="row-title">${e.description}</div>
+            <div class="row-sub">${friendName(e.paidBy)} paid · split ${e.shares.length} way${e.shares.length>1?'s':''}${methodLabel}${e.enteredBy ? ' · added by ' + friendName(e.enteredBy) : ''}</div>
+          </div>
+          <div class="row-amount">${fmt(e.amount, e.currency)}</div>
+          <button class="icon-btn" onclick="removeExpense('${e.id}')" title="Delete">✕</button>
+        </div>`;
+      }).join('') + `</div>`;
+    }
+  }
+
+  if(activeTab === 'balances'){
+    bodyHtml = usedCurrencies.map(currency => {
+      const hasExpenses = data.expenses.some(e => e.currency === currency);
+      if(currency !== defaultCurrency && !hasExpenses) return '';
+      const net = computeBalances(currency);
+      const settlements = simplifyDebts(net);
+      const balanceRows = data.friends.map(f => {
+        const n = net[f.id] || 0;
+        const cls = n > 0.005 ? 'positive' : (n < -0.005 ? 'negative' : 'zero');
+        return `<div class="row">
+          <div class="row-main"><div class="row-title">${f.name}</div></div>
+          <div class="row-amount amount ${cls}" style="color:${n>0.005?'var(--accent)':(n<-0.005?'var(--negative)':'var(--text-faint)')}">${n<0?'-':''}${fmt(n, currency)}</div>
+        </div>`;
+      }).join('');
+      let settleHtml;
+      if(settlements.length === 0){
+        settleHtml = `<div class="card"><div class="empty">Everyone's square.</div></div>`;
+      } else {
+        settleHtml = `<div class="card">` + settlements.map(s => `
+          <div class="row settle-row">
+            <div class="row-main row-title">${friendName(s.from)}<span class="arrow">→</span>${friendName(s.to)}</div>
+            <div class="row-amount">${fmt(s.amount, currency)}</div>
+          </div>`).join('') + `</div>`;
+      }
+      return `
+        <div class="section-title">Balances <span class="tag">${currency}</span></div>
+        <div class="card">${balanceRows}</div>
+        <div class="section-title">Suggested settlements <span class="tag">${currency}</span></div>
+        ${settleHtml}
+      `;
+    }).join('');
+  }
+
+  if(activeTab === 'friends'){
+    const isYou = (id) => identity && id === identity.id;
+    bodyHtml = `<div class="card">` + data.friends.map(f => `
+      <div class="row">
+        <div class="row-main row-title">${f.name}${isYou(f.id) ? ' <span style="color:var(--text-faint);font-weight:400;">(you)</span>':''}</div>
+        ${!isYou(f.id) ? `<button class="icon-btn" onclick="removeFriend('${f.id}')" title="Remove">✕</button>` : ''}
+      </div>
+    `).join('') + `</div>`;
+  }
+
+  document.title = data.name || 'Trip expenses';
+  app.innerHTML = `
+    <div class="appbar">
+      <div style="cursor:pointer;" onclick="openTripSwitcher()" title="Switch trips">
+        <div class="appbar-title">${escapeHtml(data.name)} <span style="color:var(--text-faint);font-weight:600;">▾</span></div>
+        <div class="appbar-sub">${trips.length > 1 ? trips.length + ' trips · tap to switch' : 'Shared trip expenses'}</div>
+      </div>
+      <div class="icon-round" onclick="openSettings()" title="Trip settings">⚙</div>
+    </div>
+
+    <div class="summary">
+      ${SKYLINE_SVG}
+      <div class="summary-label">${balLabel}</div>
+      <div class="summary-amount ${balClass}">${primary.net<0?'-':''}${fmt(primary.net, primary.code)}</div>
+      ${others.length ? `<div class="summary-extra">${others.map(o => `<span class="mini-pill ${o.net>0?'positive':'negative'}">${o.net<0?'-':'+'}${fmt(o.net, o.code)} ${o.code}</span>`).join('')}</div>` : ''}
+      <div class="identity-row">
+        <span>${identity ? 'Signed in as ' + identity.name : 'Not signed in'}</span>
+        <button class="switch-link" onclick="openLogin(false)">switch</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab ${activeTab==='expenses'?'active':''}" onclick="switchTab('expenses')">Expenses</div>
+      <div class="tab ${activeTab==='balances'?'active':''}" onclick="switchTab('balances')">Balances</div>
+      <div class="tab ${activeTab==='friends'?'active':''}" onclick="switchTab('friends')">Friends</div>
+    </div>
+
+    <div class="content">${bodyHtml}</div>
+
+    <button class="fab" onclick="${activeTab==='friends' ? 'openAddFriend()' : 'openAddExpense()'}" title="${activeTab==='friends' ? 'Add someone' : 'Add expense'}">+</button>
+  `;
+}
+
+loadData();
+</script>
+</body>
+</html>
