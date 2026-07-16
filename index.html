@@ -5,25 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Splitwise</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
 <style>
   :root{
-    --bg:#F5F7F9;
+    --bg:#FAFAF7;
     --surface:#FFFFFF;
-    --surface-alt:#F0F3F5;
-    --text:#12161C;
-    --text-soft:#6B7480;
-    --text-faint:#9CA4AD;
-    --accent:#0F6659;
-    --accent-strong:#0B4F45;
-    --accent-soft:#E4F1EE;
-    --negative:#C1443A;
-    --negative-soft:#FBEAE8;
-    --border:#E7E9EC;
-    --radius-lg:20px;
-    --radius-md:14px;
+    --surface-alt:#F2F1EA;
+    --text:#1A1A18;
+    --text-soft:#6E6E66;
+    --text-faint:#9D9D93;
+    --accent:#1CC29F;
+    --accent-strong:#0F9D80;
+    --accent-soft:#E1F7F1;
+    --negative:#E0563F;
+    --negative-soft:#FCEAE5;
+    --border:#EAE8E0;
+    --radius-lg:16px;
+    --radius-md:12px;
     --radius-sm:10px;
   }
   *{box-sizing:border-box;}
@@ -57,6 +57,7 @@
     font-size:19px;
     letter-spacing:-0.3px;
     padding:0 8px;
+    color:var(--accent-strong);
   }
   .sidebar-trips{
     flex:1;
@@ -79,6 +80,12 @@
   }
   .sidebar-trip:hover{background:var(--surface-alt);}
   .sidebar-trip.active{background:var(--accent-soft);color:var(--accent-strong);}
+  .sidebar-trip-inner{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    min-width:0;
+  }
   .sidebar-trip-name{
     overflow:hidden;
     text-overflow:ellipsis;
@@ -157,25 +164,7 @@
     .app{min-height:calc(100vh - 64px);}
   }
 
-  /* --- App bar --- */
-  .appbar{
-    display:flex;
-    align-items:flex-start;
-    justify-content:space-between;
-    padding:24px 20px 4px;
-  }
-  .appbar-title{
-    font-family:'Plus Jakarta Sans',sans-serif;
-    font-weight:800;
-    font-size:22px;
-    letter-spacing:-0.3px;
-    line-height:1.15;
-  }
-  .appbar-sub{
-    font-size:12.5px;
-    color:var(--text-soft);
-    margin-top:3px;
-  }
+  .app{padding-top:22px;}
   .icon-round{
     width:36px;
     height:36px;
@@ -190,53 +179,84 @@
   }
   .icon-round:hover{background:var(--surface-alt);}
 
-  /* --- Summary card (signature element) --- */
-  .summary{
+  /* --- Avatars --- */
+  .avatar{
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-weight:700;
+    flex-shrink:0;
+    line-height:1;
+  }
+  .avatar-square{border-radius:11px;}
+  .avatar-stack{display:flex;align-items:center;position:relative;}
+  .avatar-stack .avatar{border:2.5px solid var(--surface);margin-left:-11px;}
+  .avatar-stack .avatar:first-child{margin-left:0;}
+  .avatar-more{
+    width:34px;height:34px;border-radius:50%;
+    background:var(--surface-alt);color:var(--text-soft);
+    display:flex;align-items:center;justify-content:center;
+    font-size:11.5px;font-weight:700;
+    border:2.5px solid var(--surface);margin-left:-11px;
+    flex-shrink:0;
+  }
+
+  /* --- Group header (signature element) --- */
+  .group-header{
     margin:14px 20px 0;
     background:var(--surface);
     border-radius:var(--radius-lg);
-    padding:22px 22px 20px;
-    position:relative;
-    overflow:hidden;
+    padding:20px 22px 18px;
     box-shadow:0 1px 2px rgba(18,22,28,0.04), 0 8px 24px rgba(18,22,28,0.05);
   }
-  .summary-skyline{
-    position:absolute;
-    top:0; right:0;
-    width:170px;
-    height:100px;
-    opacity:0.55;
-    pointer-events:none;
+  .group-header-top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
   }
-  .summary-label{
-    font-size:12px;
-    font-weight:600;
+  .group-title-block{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    min-width:0;
+  }
+  .group-name{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-weight:800;
+    font-size:20px;
+    letter-spacing:-0.3px;
+    line-height:1.2;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .group-meta{
+    font-size:12.5px;
     color:var(--text-soft);
-    text-transform:uppercase;
-    letter-spacing:0.6px;
-    position:relative;
+    margin-top:2px;
   }
-  .summary-amount{
-    font-family:'IBM Plex Mono',monospace;
-    font-weight:600;
-    font-size:34px;
-    margin-top:4px;
-    position:relative;
+  .group-header .avatar-stack{margin-top:14px;}
+  .balance-line{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-weight:700;
+    font-size:17px;
+    margin-top:14px;
   }
-  .summary-amount.positive{color:var(--accent);}
-  .summary-amount.negative{color:var(--negative);}
-  .summary-amount.zero{color:var(--text-faint);}
+  .balance-line.positive{color:var(--accent-strong);}
+  .balance-line.negative{color:var(--negative);}
+  .balance-line.zero{color:var(--text-faint);}
   .summary-extra{
     display:flex;
     flex-wrap:wrap;
     gap:6px;
-    margin-top:12px;
-    position:relative;
+    margin-top:10px;
   }
   .mini-pill{
-    font-family:'IBM Plex Mono',monospace;
+    font-variant-numeric:tabular-nums;
     font-size:11.5px;
-    font-weight:500;
+    font-weight:600;
     padding:4px 9px;
     border-radius:20px;
     background:var(--surface-alt);
@@ -245,14 +265,23 @@
   .mini-pill.positive{background:var(--accent-soft);color:var(--accent-strong);}
   .mini-pill.negative{background:var(--negative-soft);color:var(--negative);}
 
+  .header-actions{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-top:16px;
+    padding-top:14px;
+    border-top:1px solid var(--border);
+  }
+  .header-actions .btn-settle{
+    flex:none;
+    padding:9px 18px;
+  }
   .identity-row{
     display:flex;
     align-items:center;
     gap:6px;
-    margin-top:14px;
-    padding-top:14px;
-    border-top:1px solid var(--border);
-    position:relative;
   }
   .identity-row span{
     font-size:12px;
@@ -308,9 +337,9 @@
     color:var(--text);
   }
   .section-title .tag{
-    font-family:'IBM Plex Mono',monospace;
+    font-family:'Inter',sans-serif;
     font-size:11px;
-    font-weight:500;
+    font-weight:600;
     color:var(--text-faint);
     text-transform:none;
     letter-spacing:0;
@@ -332,6 +361,7 @@
     gap:10px;
   }
   .row:last-child{border-bottom:none;}
+  .row-avatar{flex-shrink:0;}
   .row-main{min-width:0;flex:1;}
   .row-title{font-size:14.5px;font-weight:600;}
   .row-sub{
@@ -340,11 +370,36 @@
     margin-top:2px;
   }
   .row-amount{
-    font-family:'IBM Plex Mono',monospace;
-    font-weight:600;
+    font-variant-numeric:tabular-nums;
+    font-weight:700;
     font-size:14.5px;
     white-space:nowrap;
   }
+  .row-amount-block{text-align:right;white-space:nowrap;flex-shrink:0;}
+  .row-amount-total{
+    font-variant-numeric:tabular-nums;
+    font-weight:700;
+    font-size:14.5px;
+    color:var(--text);
+  }
+  .row-stake{
+    font-size:11.5px;
+    font-weight:600;
+    margin-top:2px;
+    font-variant-numeric:tabular-nums;
+  }
+  .row-stake.positive{color:var(--accent-strong);}
+  .row-stake.negative{color:var(--negative);}
+  .row-stake.faint{color:var(--text-faint);font-weight:500;}
+  .row-stake-lg{
+    font-variant-numeric:tabular-nums;
+    font-weight:700;
+    font-size:14.5px;
+  }
+  .row-stake-lg.positive{color:var(--accent-strong);}
+  .row-stake-lg.negative{color:var(--negative);}
+  .row-stake-lg.faint{color:var(--text-faint);font-weight:600;}
+  .you-tag{color:var(--text-faint);font-weight:400;}
   .icon-btn{
     background:none;
     border:none;
@@ -490,7 +545,8 @@
   .split-total{
     display:flex;
     justify-content:space-between;
-    font-family:'IBM Plex Mono',monospace;
+    font-variant-numeric:tabular-nums;
+    font-weight:600;
     font-size:12px;
     color:var(--text-soft);
     margin-top:8px;
@@ -518,11 +574,25 @@
   .btn-secondary{background:var(--surface);color:var(--text-soft);border:1px solid var(--border);}
 
   .settle-row .arrow{color:var(--accent);margin:0 6px;font-weight:600;}
+  .settle-row .avatar-pair{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+  .btn-record{
+    flex-shrink:0;
+    padding:7px 12px;
+    border-radius:20px;
+    border:1px solid var(--accent);
+    background:var(--accent-soft);
+    color:var(--accent-strong);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .btn-record:hover{background:var(--accent);color:#fff;}
 
   .loading-screen{
     display:flex;align-items:center;justify-content:center;
     height:70vh;
-    font-family:'IBM Plex Mono',monospace;
+    font-family:'Plus Jakarta Sans',sans-serif;
     color:var(--text-faint);
     font-size:13px;
   }
@@ -582,6 +652,27 @@ function setupNeeded(){
 }
 function escapeHtml(s){
   return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+const AVATAR_COLORS = ['#1CC29F','#E0563F','#3B82C4','#F4A73C','#8B5CF6','#EC6EAD','#4C9F70','#0F9D80'];
+function avatarColor(name){
+  let hash = 0;
+  for(let i=0;i<(name||'').length;i++){ hash = name.charCodeAt(i) + ((hash<<5)-hash); }
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+function initials(name){
+  return (name||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+}
+function avatarHtml(name, size, square){
+  size = size || 32;
+  return `<div class="avatar${square?' avatar-square':''}" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.38)}px;background:${avatarColor(name)}">${escapeHtml(initials(name))}</div>`;
+}
+function avatarStackHtml(friends, max){
+  max = max || 6;
+  const shown = friends.slice(0, max);
+  let html = '<div class="avatar-stack">' + shown.map(f => avatarHtml(f.name, 34)).join('');
+  if(friends.length > max) html += `<div class="avatar-more">+${friends.length - max}</div>`;
+  return html + '</div>';
 }
 
 function loadIdentityLocal(){
@@ -665,7 +756,7 @@ function renderSidebar(){
   if(!sidebar) return;
   const tripRows = trips.map(t => `
     <div class="sidebar-trip ${t.id===activeTripId ? 'active' : ''}" data-open="${t.id}">
-      <span class="sidebar-trip-name">${escapeHtml(t.name)}</span>
+      <span class="sidebar-trip-inner">${avatarHtml(t.name, 24, true)}<span class="sidebar-trip-name">${escapeHtml(t.name)}</span></span>
       <button class="icon-btn" data-delete="${t.id}" title="Delete trip">✕</button>
     </div>`).join('');
   sidebar.innerHTML = `
@@ -1097,16 +1188,35 @@ function removeExpense(id){
   saveData(); render();
 }
 
-/* ---------- Render ---------- */
-const SKYLINE_SVG = `
-<svg class="summary-skyline" viewBox="0 0 170 100" xmlns="http://www.w3.org/2000/svg">
-  <polyline points="0,70 20,70 20,45 30,45 30,60 45,60 45,30 60,30 60,70 75,70 75,50 85,50 85,70 170,70"
-    fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-  <polyline points="90,72 110,40 122,58 138,25 155,55 170,72"
-    fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-  <line x1="0" y1="78" x2="170" y2="78" stroke="var(--accent)" stroke-width="2" stroke-dasharray="1 6" stroke-linecap="round"/>
-</svg>`;
+/* ---------- Settle up ---------- */
+function confirmSettle(fromId, toId, amount, currency){
+  const msg = `Record that ${friendName(fromId)} paid ${friendName(toId)} ${fmt(amount, currency)}?`;
+  if(!confirm(msg)) return;
+  recordPayment(fromId, toId, amount, currency);
+}
+function recordPayment(fromId, toId, amount, currency){
+  data.expenses.unshift({
+    id: 'p' + Date.now(),
+    description: 'Payment',
+    amount: amount,
+    currency: currency,
+    paidBy: fromId,
+    splitType: 'payment',
+    shares: [{id: toId, amount: amount}],
+    enteredBy: identity ? identity.id : null,
+    date: new Date().toISOString()
+  });
+  saveData(); render();
+}
+function viewerStake(e){
+  if(!identity) return null;
+  const share = e.shares.find(s => s.id === identity.id);
+  const shareAmt = share ? share.amount : 0;
+  const paidAmt = e.paidBy === identity.id ? e.amount : 0;
+  return paidAmt - shareAmt;
+}
 
+/* ---------- Render ---------- */
 function render(){
   const app = document.getElementById('app');
   if(!loaded){ app.innerHTML = `<div class="loading-screen">loading trip…</div>`; return; }
@@ -1118,7 +1228,10 @@ function render(){
   const others = yourBalances.filter(b => b.code !== primary.code && Math.abs(b.net) > 0.005);
 
   const balClass = primary.net > 0.005 ? 'positive' : (primary.net < -0.005 ? 'negative' : 'zero');
-  const balLabel = primary.net > 0.005 ? "you're owed" : (primary.net < -0.005 ? 'you owe' : 'all settled up');
+  const balSentence = !identity ? 'Sign in to see your balance'
+    : primary.net > 0.005 ? `You are owed ${fmt(primary.net, primary.code)} overall`
+    : primary.net < -0.005 ? `You owe ${fmt(primary.net, primary.code)} overall`
+    : "You're all settled up";
 
   let bodyHtml = '';
 
@@ -1127,13 +1240,28 @@ function render(){
       bodyHtml = `<div class="card"><div class="empty">No expenses yet.<br>Tap the + button to add the first one.</div></div>`;
     } else {
       bodyHtml = `<div class="card">` + data.expenses.map(e => {
-        const methodLabel = e.splitType === 'equal' ? '' : ` · by ${e.splitType}`;
+        const isPayment = e.splitType === 'payment';
+        const methodLabel = (!isPayment && e.splitType !== 'equal') ? ` · by ${e.splitType}` : '';
+        const subLabel = isPayment
+          ? `Payment${e.enteredBy ? ' · added by ' + friendName(e.enteredBy) : ''}`
+          : `${friendName(e.paidBy)} paid · split ${e.shares.length} way${e.shares.length>1?'s':''}${methodLabel}${e.enteredBy ? ' · added by ' + friendName(e.enteredBy) : ''}`;
+        const stake = viewerStake(e);
+        let stakeHtml = '';
+        if(stake !== null){
+          stakeHtml = Math.abs(stake) < 0.005
+            ? `<div class="row-stake faint">not involved</div>`
+            : `<div class="row-stake ${stake>0?'positive':'negative'}">${stake>0?'you lent':'you owe'} ${fmt(Math.abs(stake), e.currency)}</div>`;
+        }
         return `<div class="row">
+          <div class="row-avatar">${avatarHtml(friendName(e.paidBy), 34)}</div>
           <div class="row-main">
-            <div class="row-title">${e.description}</div>
-            <div class="row-sub">${friendName(e.paidBy)} paid · split ${e.shares.length} way${e.shares.length>1?'s':''}${methodLabel}${e.enteredBy ? ' · added by ' + friendName(e.enteredBy) : ''}</div>
+            <div class="row-title">${escapeHtml(isPayment ? friendName(e.paidBy) + ' → ' + friendName(e.shares[0].id) : e.description)}</div>
+            <div class="row-sub">${subLabel}</div>
           </div>
-          <div class="row-amount">${fmt(e.amount, e.currency)}</div>
+          <div class="row-amount-block">
+            <div class="row-amount-total">${fmt(e.amount, e.currency)}</div>
+            ${stakeHtml}
+          </div>
           <button class="icon-btn" onclick="removeExpense('${e.id}')" title="Delete">✕</button>
         </div>`;
       }).join('') + `</div>`;
@@ -1148,10 +1276,13 @@ function render(){
       const settlements = simplifyDebts(net);
       const balanceRows = data.friends.map(f => {
         const n = net[f.id] || 0;
-        const cls = n > 0.005 ? 'positive' : (n < -0.005 ? 'negative' : 'zero');
+        const isYou = identity && f.id === identity.id;
+        const cls = n > 0.005 ? 'positive' : (n < -0.005 ? 'negative' : 'faint');
+        const label = n > 0.005 ? `gets back ${fmt(n, currency)}` : (n < -0.005 ? `owes ${fmt(n, currency)}` : 'settled up');
         return `<div class="row">
-          <div class="row-main"><div class="row-title">${f.name}</div></div>
-          <div class="row-amount amount ${cls}" style="color:${n>0.005?'var(--accent)':(n<-0.005?'var(--negative)':'var(--text-faint)')}">${n<0?'-':''}${fmt(n, currency)}</div>
+          <div class="row-avatar">${avatarHtml(f.name, 36)}</div>
+          <div class="row-main"><div class="row-title">${escapeHtml(f.name)}${isYou ? ' <span class="you-tag">(you)</span>':''}</div></div>
+          <div class="row-amount-block"><div class="row-stake-lg ${cls}">${label}</div></div>
         </div>`;
       }).join('');
       let settleHtml;
@@ -1160,14 +1291,16 @@ function render(){
       } else {
         settleHtml = `<div class="card">` + settlements.map(s => `
           <div class="row settle-row">
-            <div class="row-main row-title">${friendName(s.from)}<span class="arrow">→</span>${friendName(s.to)}</div>
+            <div class="avatar-pair">${avatarHtml(friendName(s.from), 28)}<span class="arrow">→</span>${avatarHtml(friendName(s.to), 28)}</div>
+            <div class="row-main row-title">${escapeHtml(friendName(s.from))} → ${escapeHtml(friendName(s.to))}</div>
             <div class="row-amount">${fmt(s.amount, currency)}</div>
+            <button class="btn-record" onclick="confirmSettle('${s.from}','${s.to}',${s.amount},'${currency}')">Record</button>
           </div>`).join('') + `</div>`;
       }
       return `
         <div class="section-title">Balances <span class="tag">${currency}</span></div>
         <div class="card">${balanceRows}</div>
-        <div class="section-title">Suggested settlements <span class="tag">${currency}</span></div>
+        <div class="section-title">Settle up <span class="tag">${currency}</span></div>
         ${settleHtml}
       `;
     }).join('');
@@ -1177,7 +1310,8 @@ function render(){
     const isYou = (id) => identity && id === identity.id;
     bodyHtml = `<div class="card">` + data.friends.map(f => `
       <div class="row">
-        <div class="row-main row-title">${f.name}${isYou(f.id) ? ' <span style="color:var(--text-faint);font-weight:400;">(you)</span>':''}</div>
+        <div class="row-avatar">${avatarHtml(f.name, 36)}</div>
+        <div class="row-main row-title">${escapeHtml(f.name)}${isYou(f.id) ? ' <span class="you-tag">(you)</span>':''}</div>
         ${!isYou(f.id) ? `<button class="icon-btn" onclick="removeFriend('${f.id}')" title="Remove">✕</button>` : ''}
       </div>
     `).join('') + `</div>`;
@@ -1185,22 +1319,26 @@ function render(){
 
   document.title = 'Splitwise' + (data.name ? ' · ' + data.name : '');
   app.innerHTML = `
-    <div class="appbar">
-      <div>
-        <div class="appbar-title">Splitwise</div>
-        <div class="appbar-sub">${escapeHtml(data.name)}</div>
+    <div class="group-header">
+      <div class="group-header-top">
+        <div class="group-title-block">
+          ${avatarHtml(data.name, 44, true)}
+          <div>
+            <div class="group-name">${escapeHtml(data.name)}</div>
+            <div class="group-meta">${data.friends.length} ${data.friends.length===1?'person':'people'}</div>
+          </div>
+        </div>
+        <div class="icon-round" onclick="openSettings()" title="Trip settings">⚙</div>
       </div>
-      <div class="icon-round" onclick="openSettings()" title="Trip settings">⚙</div>
-    </div>
-
-    <div class="summary">
-      ${SKYLINE_SVG}
-      <div class="summary-label">${balLabel}</div>
-      <div class="summary-amount ${balClass}">${primary.net<0?'-':''}${fmt(primary.net, primary.code)}</div>
+      ${avatarStackHtml(data.friends)}
+      <div class="balance-line ${balClass}">${balSentence}</div>
       ${others.length ? `<div class="summary-extra">${others.map(o => `<span class="mini-pill ${o.net>0?'positive':'negative'}">${o.net<0?'-':'+'}${fmt(o.net, o.code)} ${o.code}</span>`).join('')}</div>` : ''}
-      <div class="identity-row">
-        <span>${identity ? 'Signed in as ' + identity.name : 'Not signed in'}</span>
-        <button class="switch-link" onclick="openLogin(false)">switch</button>
+      <div class="header-actions">
+        <div class="identity-row">
+          <span>${identity ? 'Signed in as ' + escapeHtml(identity.name) : 'Not signed in'}</span>
+          <button class="switch-link" onclick="openLogin(false)">switch</button>
+        </div>
+        <button class="btn btn-primary btn-settle" onclick="switchTab('balances')">Settle up</button>
       </div>
     </div>
 
