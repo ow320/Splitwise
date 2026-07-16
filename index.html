@@ -269,14 +269,26 @@
     display:flex;
     align-items:center;
     justify-content:space-between;
+    flex-wrap:wrap;
     gap:10px;
     margin-top:16px;
     padding-top:14px;
     border-top:1px solid var(--border);
   }
+  .header-buttons{
+    display:flex;
+    gap:8px;
+  }
   .header-actions .btn-settle{
     flex:none;
     padding:9px 18px;
+    white-space:nowrap;
+  }
+  .btn-danger{background:var(--negative);color:#fff;}
+  @media (max-width:460px){
+    .header-actions{flex-direction:column;align-items:stretch;}
+    .header-buttons{width:100%;}
+    .header-buttons .btn-settle{flex:1;padding:9px 8px;}
   }
   .identity-row{
     display:flex;
@@ -1338,7 +1350,10 @@ function render(){
           <span>${identity ? 'Signed in as ' + escapeHtml(identity.name) : 'Not signed in'}</span>
           <button class="switch-link" onclick="openLogin(false)">switch</button>
         </div>
-        <button class="btn btn-primary btn-settle" onclick="switchTab('balances')">Settle up</button>
+        <div class="header-buttons">
+          <button class="btn btn-primary btn-settle" onclick="switchTab('balances')">Settle up</button>
+          <button class="btn btn-danger btn-settle" onclick="openAddExpense()">Add an expense</button>
+        </div>
       </div>
     </div>
 
@@ -1350,7 +1365,7 @@ function render(){
 
     <div class="content">${bodyHtml}</div>
 
-    <button class="fab" onclick="${activeTab==='friends' ? 'openAddFriend()' : 'openAddExpense()'}" title="${activeTab==='friends' ? 'Add someone' : 'Add expense'}">+</button>
+    ${activeTab==='friends' ? `<button class="fab" onclick="openAddFriend()" title="Add someone">+</button>` : ''}
   `;
 }
 
